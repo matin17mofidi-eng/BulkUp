@@ -319,6 +319,32 @@ const COMMON_FOODS = [
   { name: "Protein bar (typical, 1 bar)", calories: 220, protein: 20, carbs: 23, fat: 8 },
 ];
 
+/* ---------------------------------------------------------
+   DATA: body measurements — fields and how-to-measure guides
+--------------------------------------------------------- */
+const MEASUREMENT_FIELDS = [
+  {
+    key: "chest",
+    label: "Chest",
+    guide: "Wrap the tape around your chest at nipple height, under your arms. Keep the tape level front to back, breathe out normally, and don't pull it tight.",
+  },
+  {
+    key: "arms",
+    label: "Arms",
+    guide: "Flex your bicep and measure around the widest part of your upper arm. Pick either flexed or relaxed and stick with the same choice every time you log.",
+  },
+  {
+    key: "waist",
+    label: "Waist",
+    guide: "Measure around your stomach at belly-button height, after exhaling normally. Don't suck in or flex your abs — this one matters most when it's consistent and honest.",
+  },
+  {
+    key: "thighs",
+    label: "Thighs",
+    guide: "Stand with your weight evenly on both legs and measure around the widest part of one thigh, just below your glutes.",
+  },
+];
+
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 /* ---------------------------------------------------------
@@ -371,6 +397,13 @@ function calcTargets(profile) {
 
 function todayKey() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function daysSince(dateStr) {
+  const then = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now - then;
+  return diffMs / (1000 * 60 * 60 * 24);
 }
 
 function loadState() {
@@ -1420,6 +1453,7 @@ function SleepSection({ state, setState, today, dateKey }) {
 function ProfileTab({ state, setState, targets }) {
   const [editing, setEditing] = useState(false);
   const [weightInput, setWeightInput] = useState(state.profile.weight);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   function logWeight() {
     const newWeight = Number(weightInput);
@@ -1443,7 +1477,15 @@ function ProfileTab({ state, setState, targets }) {
 
   return (
     <div style={{ padding: "1.25rem 1.25rem 6rem" }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "#E8E8E8", marginBottom: "1.25rem" }}>Profile & progress</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: "#E8E8E8", margin: 0 }}>Profile & progress</h1>
+        <button
+          onClick={() => setSettingsOpen(true)}
+          style={{ background: "none", border: "1px solid #262626", borderRadius: 10, padding: "7px 12px", cursor: "pointer", color: "#8A8A8A", fontSize: 12, fontWeight: 600, display: "flex", alignItems: "center", gap: 5 }}
+        >
+          <Edit3 size={13} /> Edit profile
+        </button>
+      </div>
 
       <div style={{ background: "#141414", border: "1px solid #262626", borderRadius: 18, padding: "1.25rem", marginBottom: "1rem" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: "1rem" }}>
@@ -1490,6 +1532,11 @@ function ProfileTab({ state, setState, targets }) {
       </div>
 
       <div style={{ background: "#141414", border: "1px solid #262626", borderRadius: 18, padding: "1.25rem", marginBottom: "1rem" }}>
+        <p style={{ fontWeight: 600, fontSize: 15, color: "#E8E8E8", marginBottom: 4 }}>Body measurements</p>
+        <MeasurementsSection state={state} setState={setState} />
+      </div>
+
+      <div style={{ background: "#141414", border: "1px solid #262626", borderRadius: 18, padding: "1.25rem", marginBottom: "1rem" }}>
         <p style={{ fontWeight: 600, fontSize: 15, color: "#E8E8E8", marginBottom: 10 }}>Daily targets</p>
         <TargetRow label="Calories" value={`${targets.targetCalories} kcal`} sub={`maintenance ~${targets.tdee} kcal`} />
         <TargetRow label="Protein" value={`${targets.proteinTarget} g`} sub="~1g per lb bodyweight" />
@@ -1503,6 +1550,131 @@ function ProfileTab({ state, setState, targets }) {
           {totalGain > 0 ? "+" : ""}{totalGain} lb
         </p>
         <p style={{ fontSize: 12, color: "#8A8A8A" }}>since {state.profile.createdAt}</p>
+      </div>
+
+      {settingsOpen && (
+        <EditProfileModal state={state} setState={setState} onClose={() => setSettingsOpen(false)} />
+      )}
+    </div>
+  );
+}
+
+function EditProfileModal({ state, setState, onClose }) {
+  const p = state.profile;
+  const [form, setForm] = useState({
+    height: String(p.height),
+    age: String(p.age),
+    sex: p.sex,
+    goalWeight: String(p.goalWeight),
+    goalPace: p.goalPace,
+  });
+
+  const goalPaceOptions = [
+    ["lean", "Slow & lean (~0.25 lb/week)"],
+    ["moderate", "Moderate (~0.5 lb/week)"],
+    ["aggressive", "Faster gain (~1 lb/week)"],
+  ];
+
+  function save() {
+    setState({
+      ...state,
+      profile: {
+        ...p,
+        height: Number(form.height) || p.height,
+        age: Number(form.age) || p.age,
+        sex: form.sex,
+        goalWeight: Number(form.goalWeight) || p.goalWeight,
+        goalPace: form.goalPace,
+      },
+    });
+    onClose();
+  }
+
+  const inputStyle = {
+    width: "100%", padding: "12px 14px", borderRadius: 12, border: "1px solid #333333",
+    background: "#0A0A0A", color: "#E8E8E8", fontSize: 15, outline: "none", boxSizing: "border-box",
+  };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 50 }} onClick={onClose}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{ background: "#141414", border: "1px solid #262626", borderRadius: "24px 24px 0 0", padding: "1.5rem", maxWidth: 480, width: "100%", maxHeight: "85vh", overflowY: "auto" }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+          <h2 style={{ fontSize: 19, fontWeight: 700, color: "#E8E8E8" }}>Edit profile</h2>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#8A8A8A" }}>
+            <X size={22} />
+          </button>
+        </div>
+
+        <p style={{ fontSize: 12, color: "#666666", marginBottom: 16, lineHeight: 1.4 }}>
+          Updating these recalculates your daily calorie and macro targets right away. Your name and current weight are managed elsewhere (current weight logs from the Profile screen, name can't be changed).
+        </p>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div>
+            <p style={{ fontSize: 12, color: "#8A8A8A", marginBottom: 6 }}>Height (inches)</p>
+            <input type="number" value={form.height} onChange={(e) => setForm({ ...form, height: e.target.value })} style={inputStyle} />
+          </div>
+
+          <div>
+            <p style={{ fontSize: 12, color: "#8A8A8A", marginBottom: 6 }}>Age</p>
+            <input type="number" value={form.age} onChange={(e) => setForm({ ...form, age: e.target.value })} style={inputStyle} />
+          </div>
+
+          <div>
+            <p style={{ fontSize: 12, color: "#8A8A8A", marginBottom: 6 }}>Sex (used for calorie calculation)</p>
+            <div style={{ display: "flex", gap: 8 }}>
+              {[["male", "Male"], ["female", "Female"]].map(([val, label]) => (
+                <button
+                  key={val}
+                  onClick={() => setForm({ ...form, sex: val })}
+                  style={{
+                    flex: 1, padding: "11px 0", borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer",
+                    border: form.sex === val ? "2px solid #39FF14" : "1px solid #333333",
+                    background: form.sex === val ? "#0F1F0A" : "#0A0A0A",
+                    color: form.sex === val ? "#39FF14" : "#E8E8E8",
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p style={{ fontSize: 12, color: "#8A8A8A", marginBottom: 6 }}>Goal weight (lbs)</p>
+            <input type="number" value={form.goalWeight} onChange={(e) => setForm({ ...form, goalWeight: e.target.value })} style={inputStyle} />
+          </div>
+
+          <div>
+            <p style={{ fontSize: 12, color: "#8A8A8A", marginBottom: 6 }}>Gain pace</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {goalPaceOptions.map(([val, label]) => (
+                <button
+                  key={val}
+                  onClick={() => setForm({ ...form, goalPace: val })}
+                  style={{
+                    padding: "12px 14px", borderRadius: 10, textAlign: "left", fontSize: 14, fontWeight: 500, cursor: "pointer",
+                    border: form.goalPace === val ? "2px solid #39FF14" : "1px solid #333333",
+                    background: form.goalPace === val ? "#0F1F0A" : "#0A0A0A",
+                    color: "#E8E8E8",
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={save}
+          style={{ width: "100%", padding: "14px 0", borderRadius: 12, border: "none", background: "#39FF14", color: "#0A0A0A", fontWeight: 700, fontSize: 15, cursor: "pointer", marginTop: 20 }}
+        >
+          Save changes
+        </button>
       </div>
     </div>
   );
@@ -1622,6 +1794,136 @@ function WeightChart({ history, goalWeight }) {
           Latest: {sorted[sorted.length - 1].weight} lb
         </p>
       </div>
+    </div>
+  );
+}
+
+function MeasurementsSection({ state, setState }) {
+  const history = state.profile.measurements || [];
+  const lastEntry = history.length > 0 ? history[history.length - 1] : null;
+  const daysSinceLast = lastEntry ? daysSince(lastEntry.date) : Infinity;
+  const canLog = daysSinceLast >= 7;
+  const daysRemaining = Math.ceil(7 - daysSinceLast);
+
+  const [logging, setLogging] = useState(false);
+  const [openGuide, setOpenGuide] = useState(null);
+  const [form, setForm] = useState({ chest: "", arms: "", waist: "", thighs: "" });
+
+  function startLogging() {
+    setForm({ chest: "", arms: "", waist: "", thighs: "" });
+    setLogging(true);
+  }
+
+  function saveMeasurements() {
+    const entry = {
+      date: todayKey(),
+      chest: Number(form.chest) || null,
+      arms: Number(form.arms) || null,
+      waist: Number(form.waist) || null,
+      thighs: Number(form.thighs) || null,
+    };
+    const updated = [...history, entry];
+    setState({ ...state, profile: { ...state.profile, measurements: updated } });
+    setLogging(false);
+  }
+
+  const anyFilled = Object.values(form).some((v) => v !== "");
+
+  if (logging) {
+    return (
+      <div>
+        <p style={{ fontSize: 13, color: "#8A8A8A", marginBottom: 14, lineHeight: 1.5 }}>
+          Use a tape measure. Tap a field's name for a quick how-to if you're not sure.
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {MEASUREMENT_FIELDS.map((f) => (
+            <div key={f.key}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <button
+                  onClick={() => setOpenGuide(openGuide === f.key ? null : f.key)}
+                  style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}
+                >
+                  <span style={{ fontSize: 13, color: "#E8E8E8", fontWeight: 600 }}>{f.label}</span>
+                  <span style={{ fontSize: 11, color: "#39FF14", textDecoration: "underline" }}>how to measure</span>
+                </button>
+                <span style={{ fontSize: 11, color: "#666666" }}>inches</span>
+              </div>
+              {openGuide === f.key && (
+                <p style={{ fontSize: 12, color: "#8A8A8A", lineHeight: 1.5, background: "#0A0A0A", border: "1px solid #262626", borderRadius: 10, padding: "10px 12px", marginBottom: 8 }}>
+                  {f.guide}
+                </p>
+              )}
+              <input
+                type="number"
+                placeholder={`${f.label} (in)`}
+                value={form[f.key]}
+                onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                style={{ width: "100%", padding: "11px 12px", borderRadius: 10, border: "1px solid #333333", background: "#0A0A0A", color: "#E8E8E8", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+              />
+            </div>
+          ))}
+        </div>
+        <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+          <button
+            onClick={() => setLogging(false)}
+            style={{ flex: 1, padding: "11px 0", borderRadius: 10, border: "1px solid #262626", background: "#0A0A0A", color: "#8A8A8A", fontWeight: 600, fontSize: 13, cursor: "pointer" }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={saveMeasurements}
+            disabled={!anyFilled}
+            style={{
+              flex: 1, padding: "11px 0", borderRadius: 10, border: "none", cursor: anyFilled ? "pointer" : "not-allowed",
+              background: anyFilled ? "#39FF14" : "#262626", color: anyFilled ? "#0A0A0A" : "#666666", fontWeight: 700, fontSize: 13,
+            }}
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {lastEntry ? (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+          {MEASUREMENT_FIELDS.map((f) => (
+            <div key={f.key} style={{ background: "#0A0A0A", border: "1px solid #262626", borderRadius: 12, padding: "10px 12px" }}>
+              <p style={{ fontSize: 11, color: "#8A8A8A", margin: "0 0 2px" }}>{f.label}</p>
+              <p style={{ fontSize: 16, fontWeight: 700, color: "#E8E8E8", margin: 0 }}>
+                {lastEntry[f.key] != null ? `${lastEntry[f.key]}"` : "—"}
+              </p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p style={{ fontSize: 13, color: "#8A8A8A", marginBottom: 14, lineHeight: 1.5 }}>
+          No measurements logged yet. Tracking chest, arms, waist, and thighs alongside your weight shows whether you're building muscle, not just gaining weight.
+        </p>
+      )}
+
+      {history.length > 1 && (
+        <p style={{ fontSize: 12, color: "#666666", marginBottom: 14 }}>{history.length} weekly entries logged</p>
+      )}
+
+      <button
+        onClick={startLogging}
+        disabled={!canLog}
+        style={{
+          width: "100%", padding: "11px 0", borderRadius: 12, border: canLog ? "none" : "1px solid #262626",
+          background: canLog ? "#39FF14" : "#0A0A0A", color: canLog ? "#0A0A0A" : "#666666",
+          fontWeight: 700, fontSize: 13, cursor: canLog ? "pointer" : "not-allowed",
+        }}
+      >
+        {canLog ? "Log this week's measurements" : `Available in ${daysRemaining} day${daysRemaining === 1 ? "" : "s"}`}
+      </button>
+      {!canLog && (
+        <p style={{ fontSize: 11, color: "#666666", textAlign: "center", marginTop: 8, marginBottom: 0 }}>
+          Measurements update slowly — weekly logging keeps the numbers meaningful.
+        </p>
+      )}
     </div>
   );
 }
