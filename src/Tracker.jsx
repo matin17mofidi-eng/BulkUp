@@ -360,13 +360,13 @@ function Onboarding({ onComplete }) {
     <div style={{ minHeight: "520px", display: "flex", flexDirection: "column", justifyContent: "center", padding: "2rem 1.5rem", maxWidth: "440px", margin: "0 auto" }}>
       <div style={{ display: "flex", gap: 6, marginBottom: "2rem" }}>
         {steps.map((_, i) => (
-          <div key={i} style={{ flex: 1, height: 4, borderRadius: 2, background: i <= step ? "#D4742C" : "#E5DDD0" }} />
+          <div key={i} style={{ flex: 1, height: 4, borderRadius: 2, background: i <= step ? "#39FF14" : "#262626" }} />
         ))}
       </div>
-      <p style={{ fontSize: 13, color: "#8A7B68", marginBottom: 6, fontWeight: 500, letterSpacing: "0.02em" }}>
+      <p style={{ fontSize: 13, color: "#8A8A8A", marginBottom: 6, fontWeight: 500, letterSpacing: "0.02em" }}>
         STEP {step + 1} OF {steps.length}
       </p>
-      <h2 style={{ fontSize: 26, fontWeight: 700, color: "#1C1410", marginBottom: "1.5rem", lineHeight: 1.3 }}>
+      <h2 style={{ fontSize: 26, fontWeight: 700, color: "#E8E8E8", marginBottom: "1.5rem", lineHeight: 1.3 }}>
         {current.label}
       </h2>
 
@@ -379,12 +379,12 @@ function Onboarding({ onComplete }) {
               style={{
                 padding: "14px 16px",
                 borderRadius: 12,
-                border: form[current.key] === val ? "2px solid #D4742C" : "1px solid #E5DDD0",
-                background: form[current.key] === val ? "#FBF0E4" : "#FFFFFF",
+                border: form[current.key] === val ? "2px solid #39FF14" : "1px solid #333333",
+                background: form[current.key] === val ? "#0F1F0A" : "#141414",
                 textAlign: "left",
                 fontSize: 15,
                 fontWeight: 500,
-                color: "#1C1410",
+                color: "#E8E8E8",
                 cursor: "pointer",
               }}
             >
@@ -404,11 +404,11 @@ function Onboarding({ onComplete }) {
             padding: "14px 16px",
             fontSize: 17,
             borderRadius: 12,
-            border: "1px solid #E5DDD0",
+            border: "1px solid #333333",
             marginBottom: "2rem",
             outline: "none",
-            background: "#FFFFFF",
-            color: "#1C1410",
+            background: "#141414",
+            color: "#E8E8E8",
           }}
         />
       )}
@@ -417,7 +417,7 @@ function Onboarding({ onComplete }) {
         {step > 0 && (
           <button
             onClick={() => setStep(step - 1)}
-            style={{ padding: "12px 18px", borderRadius: 12, border: "1px solid #E5DDD0", background: "#FFFFFF", color: "#8A7B68", fontWeight: 500, cursor: "pointer" }}
+            style={{ padding: "12px 18px", borderRadius: 12, border: "1px solid #333333", background: "#141414", color: "#8A8A8A", fontWeight: 500, cursor: "pointer" }}
           >
             <ChevronLeft size={18} />
           </button>
@@ -427,8 +427,8 @@ function Onboarding({ onComplete }) {
           disabled={!canProceed}
           style={{
             flex: 1, padding: "14px 18px", borderRadius: 12, border: "none",
-            background: canProceed ? "#D4742C" : "#E5DDD0",
-            color: canProceed ? "#FFF8EF" : "#A89A86",
+            background: canProceed ? "#39FF14" : "#262626",
+            color: canProceed ? "#0A0A0A" : "#666666",
             fontWeight: 600, fontSize: 16, cursor: canProceed ? "pointer" : "not-allowed",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
           }}
@@ -447,7 +447,7 @@ function Onboarding({ onComplete }) {
 function StackBar({ value, max, color, height = 14 }) {
   const pct = Math.min(100, Math.round((value / max) * 100));
   return (
-    <div style={{ width: "100%", height, borderRadius: height / 2, background: "#EFE7D8", overflow: "hidden" }}>
+    <div style={{ width: "100%", height, borderRadius: height / 2, background: "#262626", overflow: "hidden" }}>
       <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: height / 2, transition: "width 0.4s ease" }} />
     </div>
   );
@@ -465,28 +465,28 @@ function Dashboard({ state, setState, targets, setTab }) {
 
   return (
     <div style={{ padding: "1.25rem 1.25rem 6rem" }}>
-      <p style={{ fontSize: 14, color: "#8A7B68", marginBottom: 2 }}>
+      <p style={{ fontSize: 14, color: "#8A8A8A", marginBottom: 2 }}>
         {new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
       </p>
-      <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1C1410", marginBottom: "1.25rem" }}>
+      <h1 style={{ fontSize: 24, fontWeight: 700, color: "#E8E8E8", marginBottom: "1.25rem" }}>
         Hey {state.profile.name}, let's build
       </h1>
 
       {/* Calorie ring card */}
-      <div style={{ background: "#1C1410", borderRadius: 20, padding: "1.5rem", marginBottom: "1rem", color: "#FFF8EF" }}>
+      <div style={{ background: "#141414", border: "1px solid #2A4A1F", borderRadius: 20, padding: "1.5rem", marginBottom: "1rem", color: "#E8E8E8" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
-          <span style={{ fontSize: 13, color: "#C9BBA4", fontWeight: 500 }}>CALORIES TODAY</span>
-          <span style={{ fontSize: 13, color: "#C9BBA4" }}>goal {targets.targetCalories}</span>
+          <span style={{ fontSize: 13, color: "#8A8A8A", fontWeight: 500 }}>CALORIES TODAY</span>
+          <span style={{ fontSize: 13, color: "#8A8A8A" }}>goal {targets.targetCalories}</span>
         </div>
         <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 14 }}>
-          <span style={{ fontSize: 38, fontWeight: 700 }}>{today.calories}</span>
-          <span style={{ fontSize: 16, color: "#C9BBA4" }}>/ {targets.targetCalories} kcal</span>
+          <span style={{ fontSize: 38, fontWeight: 700, color: "#39FF14" }}>{today.calories}</span>
+          <span style={{ fontSize: 16, color: "#8A8A8A" }}>/ {targets.targetCalories} kcal</span>
         </div>
-        <StackBar value={today.calories} max={targets.targetCalories} color="#D4742C" height={10} />
+        <StackBar value={today.calories} max={targets.targetCalories} color="#39FF14" height={10} />
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 16, gap: 10 }}>
-          <MacroChip label="Protein" value={today.protein} target={targets.proteinTarget} color="#B8483F" />
-          <MacroChip label="Carbs" value={today.carbs} target={targets.carbsTarget} color="#D4742C" />
-          <MacroChip label="Fat" value={today.fat} target={targets.fatTarget} color="#7A8B5C" />
+          <MacroChip label="Protein" value={today.protein} target={targets.proteinTarget} color="#FF4D4D" />
+          <MacroChip label="Carbs" value={today.carbs} target={targets.carbsTarget} color="#39FF14" />
+          <MacroChip label="Fat" value={today.fat} target={targets.fatTarget} color="#39C5FF" />
         </div>
       </div>
 
@@ -500,10 +500,10 @@ function Dashboard({ state, setState, targets, setTab }) {
       <SectionCard
         title="Today's workout"
         onClick={() => setTab("gym")}
-        icon={<Dumbbell size={18} color="#D4742C" />}
+        icon={<Dumbbell size={18} color="#39FF14" />}
       >
-        <p style={{ fontWeight: 600, fontSize: 15, color: "#1C1410", marginBottom: 4 }}>{workout.name}</p>
-        <p style={{ fontSize: 13, color: "#8A7B68" }}>
+        <p style={{ fontWeight: 600, fontSize: 15, color: "#E8E8E8", marginBottom: 4 }}>{workout.name}</p>
+        <p style={{ fontSize: 13, color: "#8A8A8A" }}>
           {workout.type === "rest" ? "Recovery day — no lifting" : `${workout.exercises.length} exercises`}
         </p>
       </SectionCard>
@@ -512,16 +512,16 @@ function Dashboard({ state, setState, targets, setTab }) {
       <SectionCard
         title="Today's meal plan"
         onClick={() => setTab("meals")}
-        icon={<UtensilsCrossed size={18} color="#D4742C" />}
+        icon={<UtensilsCrossed size={18} color="#39FF14" />}
       >
-        <p style={{ fontSize: 13, color: "#8A7B68" }}>Breakfast, lunch, dinner, and snacks lined up to hit {targets.targetCalories} kcal</p>
+        <p style={{ fontSize: 13, color: "#8A8A8A" }}>Breakfast, lunch, dinner, and snacks lined up to hit {targets.targetCalories} kcal</p>
       </SectionCard>
 
       {/* Water tracker quick */}
-      <SectionCard title="Water" onClick={() => setTab("water")} icon={<Droplets size={18} color="#D4742C" />}>
+      <SectionCard title="Water" onClick={() => setTab("water")} icon={<Droplets size={18} color="#39FF14" />}>
         <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
           {Array.from({ length: state.profile.waterGoal || 10 }).map((_, i) => (
-            <div key={i} style={{ width: 16, height: 22, borderRadius: 4, background: i < today.water ? "#7AA7C9" : "#EFE7D8" }} />
+            <div key={i} style={{ width: 16, height: 22, borderRadius: 4, background: i < today.water ? "#39C5FF" : "#262626" }} />
           ))}
         </div>
       </SectionCard>
@@ -533,8 +533,8 @@ function MacroChip({ label, value, target, color }) {
   return (
     <div style={{ flex: 1 }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-        <span style={{ fontSize: 11, color: "#C9BBA4" }}>{label}</span>
-        <span style={{ fontSize: 11, color: "#C9BBA4" }}>{value}/{target}g</span>
+        <span style={{ fontSize: 11, color: "#8A8A8A" }}>{label}</span>
+        <span style={{ fontSize: 11, color: "#8A8A8A" }}>{value}/{target}g</span>
       </div>
       <StackBar value={value} max={target} color={color} height={6} />
     </div>
@@ -543,10 +543,10 @@ function MacroChip({ label, value, target, color }) {
 
 function StatCard({ icon, label, value }) {
   return (
-    <div style={{ flex: 1, background: "#FFFFFF", border: "1px solid #EFE7D8", borderRadius: 16, padding: "1rem" }}>
-      <div style={{ color: "#D4742C", marginBottom: 6 }}>{icon}</div>
-      <p style={{ fontSize: 12, color: "#8A7B68", marginBottom: 2 }}>{label}</p>
-      <p style={{ fontSize: 17, fontWeight: 700, color: "#1C1410" }}>{value}</p>
+    <div style={{ flex: 1, background: "#141414", border: "1px solid #262626", borderRadius: 16, padding: "1rem" }}>
+      <div style={{ color: "#39FF14", marginBottom: 6 }}>{icon}</div>
+      <p style={{ fontSize: 12, color: "#8A8A8A", marginBottom: 2 }}>{label}</p>
+      <p style={{ fontSize: 17, fontWeight: 700, color: "#E8E8E8" }}>{value}</p>
     </div>
   );
 }
@@ -556,16 +556,16 @@ function SectionCard({ title, icon, children, onClick }) {
     <button
       onClick={onClick}
       style={{
-        width: "100%", textAlign: "left", background: "#FFFFFF", border: "1px solid #EFE7D8",
+        width: "100%", textAlign: "left", background: "#141414", border: "1px solid #262626",
         borderRadius: 16, padding: "1.1rem", marginBottom: "0.85rem", cursor: "pointer", display: "block",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {icon}
-          <span style={{ fontWeight: 600, fontSize: 15, color: "#1C1410" }}>{title}</span>
+          <span style={{ fontWeight: 600, fontSize: 15, color: "#E8E8E8" }}>{title}</span>
         </div>
-        <ChevronRight size={16} color="#C9BBA4" />
+        <ChevronRight size={16} color="#8A8A8A" />
       </div>
       {children}
     </button>
@@ -597,7 +597,7 @@ function GymTab({ state, setState }) {
 
   return (
     <div style={{ padding: "1.25rem 1.25rem 6rem" }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1C1410", marginBottom: "1rem" }}>Weekly schedule</h1>
+      <h1 style={{ fontSize: 22, fontWeight: 700, color: "#E8E8E8", marginBottom: "1rem" }}>Weekly schedule</h1>
 
       <div style={{ display: "flex", gap: 6, overflowX: "auto", marginBottom: "1.25rem", paddingBottom: 4 }}>
         {DAYS.map((d, i) => (
@@ -606,9 +606,9 @@ function GymTab({ state, setState }) {
             onClick={() => setSelectedDay(d)}
             style={{
               flex: "0 0 auto", padding: "8px 14px", borderRadius: 12, fontSize: 13, fontWeight: 600,
-              border: i === todayIdx ? "2px solid #D4742C" : "1px solid #EFE7D8",
-              background: selectedDay === d ? "#1C1410" : "#FFFFFF",
-              color: selectedDay === d ? "#FFF8EF" : "#1C1410",
+              border: i === todayIdx ? "2px solid #39FF14" : "1px solid #262626",
+              background: selectedDay === d ? "#39FF14" : "#141414",
+              color: selectedDay === d ? "#0A0A0A" : "#E8E8E8",
               cursor: "pointer", whiteSpace: "nowrap",
             }}
           >
@@ -617,13 +617,13 @@ function GymTab({ state, setState }) {
         ))}
       </div>
 
-      <div style={{ background: workout.type === "rest" ? "#F2EEE3" : "#1C1410", color: workout.type === "rest" ? "#1C1410" : "#FFF8EF", borderRadius: 18, padding: "1.25rem", marginBottom: "1.25rem" }}>
+      <div style={{ background: workout.type === "rest" ? "#141414" : "#0F1F0A", border: workout.type === "rest" ? "1px solid #262626" : "1px solid #2A4A1F", color: "#E8E8E8", borderRadius: 18, padding: "1.25rem", marginBottom: "1.25rem" }}>
         <p style={{ fontSize: 12, opacity: 0.7, marginBottom: 4 }}>{selectedDay.toUpperCase()}</p>
-        <p style={{ fontSize: 19, fontWeight: 700 }}>{workout.name}</p>
+        <p style={{ fontSize: 19, fontWeight: 700, color: workout.type === "rest" ? "#E8E8E8" : "#39FF14" }}>{workout.name}</p>
       </div>
 
       {workout.type === "rest" ? (
-        <p style={{ color: "#8A7B68", fontSize: 14, lineHeight: 1.6 }}>
+        <p style={{ color: "#8A8A8A", fontSize: 14, lineHeight: 1.6 }}>
           Recovery matters as much as lifting when you're building mass — this is where muscle actually repairs and grows. A light 20-30 minute walk is fine, but skip the gym today.
         </p>
       ) : (
@@ -632,26 +632,26 @@ function GymTab({ state, setState }) {
             const key = `${selectedDay}:${ex.name}`;
             const done = (today.completedExercises || []).includes(key);
             return (
-              <div key={ex.name} style={{ background: "#FFFFFF", border: "1px solid #EFE7D8", borderRadius: 16, padding: "1rem", opacity: done ? 0.6 : 1 }}>
+              <div key={ex.name} style={{ background: "#141414", border: "1px solid #262626", borderRadius: 16, padding: "1rem", opacity: done ? 0.6 : 1 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
                   <button
                     onClick={() => toggleExercise(ex.name)}
                     style={{
                       width: 26, height: 26, borderRadius: "50%", flexShrink: 0, marginTop: 2,
-                      border: done ? "none" : "2px solid #E5DDD0", background: done ? "#7A8B5C" : "transparent",
+                      border: done ? "none" : "2px solid #333333", background: done ? "#39FF14" : "transparent",
                       display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
                     }}
                   >
-                    {done && <Check size={15} color="#FFF8EF" />}
+                    {done && <Check size={15} color="#0A0A0A" />}
                   </button>
                   <div style={{ flex: 1 }}>
-                    <p style={{ fontWeight: 600, fontSize: 15, color: "#1C1410", marginBottom: 4, textDecoration: done ? "line-through" : "none" }}>
+                    <p style={{ fontWeight: 600, fontSize: 15, color: "#E8E8E8", marginBottom: 4, textDecoration: done ? "line-through" : "none" }}>
                       {ex.name}
                     </p>
-                    <p style={{ fontSize: 13, color: "#8A7B68", marginBottom: ex.note ? 4 : 0 }}>
+                    <p style={{ fontSize: 13, color: "#8A8A8A", marginBottom: ex.note ? 4 : 0 }}>
                       {ex.sets} sets × {ex.reps} reps · rest {ex.rest}
                     </p>
-                    {ex.note && <p style={{ fontSize: 12, color: "#D4742C", fontStyle: "italic" }}>{ex.note}</p>}
+                    {ex.note && <p style={{ fontSize: 12, color: "#39FF14", fontStyle: "italic" }}>{ex.note}</p>}
                   </div>
                   <a
                     href={youtubeSearchUrl(ex.name)}
@@ -659,8 +659,8 @@ function GymTab({ state, setState }) {
                     rel="noopener noreferrer"
                     style={{
                       flexShrink: 0, display: "flex", alignItems: "center", gap: 4, fontSize: 12,
-                      color: "#B8483F", textDecoration: "none", fontWeight: 600, padding: "6px 10px",
-                      border: "1px solid #F0D9D4", borderRadius: 10, marginTop: 2,
+                      color: "#FF4D4D", textDecoration: "none", fontWeight: 600, padding: "6px 10px",
+                      border: "1px solid #3A1F1F", borderRadius: 10, marginTop: 2,
                     }}
                   >
                     <ExternalLink size={12} /> Form
@@ -717,8 +717,8 @@ function MealsTab({ state, setState, targets }) {
 
   return (
     <div style={{ padding: "1.25rem 1.25rem 6rem" }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1C1410", marginBottom: 4 }}>Meal planner</h1>
-      <p style={{ fontSize: 13, color: "#8A7B68", marginBottom: "1.1rem" }}>
+      <h1 style={{ fontSize: 22, fontWeight: 700, color: "#E8E8E8", marginBottom: 4 }}>Meal planner</h1>
+      <p style={{ fontSize: 13, color: "#8A8A8A", marginBottom: "1.1rem" }}>
         Daily target: {targets.targetCalories} kcal · {targets.proteinTarget}g protein
       </p>
 
@@ -729,9 +729,9 @@ function MealsTab({ state, setState, targets }) {
             onClick={() => setActiveCategory(key)}
             style={{
               flex: 1, padding: "9px 4px", borderRadius: 12, fontSize: 13, fontWeight: 600,
-              border: "1px solid #EFE7D8",
-              background: activeCategory === key ? "#1C1410" : "#FFFFFF",
-              color: activeCategory === key ? "#FFF8EF" : "#1C1410",
+              border: "1px solid #262626",
+              background: activeCategory === key ? "#39FF14" : "#141414",
+              color: activeCategory === key ? "#0A0A0A" : "#E8E8E8",
               cursor: "pointer",
             }}
           >
@@ -744,11 +744,11 @@ function MealsTab({ state, setState, targets }) {
         {MEAL_DATABASE[activeCategory].map((meal) => {
           const logged = loggedIds.includes(meal.id);
           return (
-            <div key={meal.id} style={{ background: "#FFFFFF", border: "1px solid #EFE7D8", borderRadius: 16, padding: "1rem" }}>
+            <div key={meal.id} style={{ background: "#141414", border: "1px solid #262626", borderRadius: 16, padding: "1rem" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontWeight: 600, fontSize: 15, color: "#1C1410", marginBottom: 4 }}>{meal.name}</p>
-                  <p style={{ fontSize: 12, color: "#8A7B68" }}>
+                  <p style={{ fontWeight: 600, fontSize: 15, color: "#E8E8E8", marginBottom: 4 }}>{meal.name}</p>
+                  <p style={{ fontSize: 12, color: "#8A8A8A" }}>
                     {meal.calories} kcal · P{meal.protein} C{meal.carbs} F{meal.fat}
                   </p>
                 </div>
@@ -756,7 +756,7 @@ function MealsTab({ state, setState, targets }) {
               <div style={{ display: "flex", gap: 8 }}>
                 <button
                   onClick={() => setRecipeModal(meal)}
-                  style={{ flex: 1, padding: "9px 0", borderRadius: 10, border: "1px solid #EFE7D8", background: "#FBF7EF", color: "#1C1410", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+                  style={{ flex: 1, padding: "9px 0", borderRadius: 10, border: "1px solid #262626", background: "#0A0A0A", color: "#E8E8E8", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
                 >
                   Recipe
                 </button>
@@ -764,8 +764,9 @@ function MealsTab({ state, setState, targets }) {
                   onClick={() => logMeal(meal)}
                   style={{
                     flex: 1, padding: "9px 0", borderRadius: 10, border: "none", cursor: "pointer",
-                    background: logged ? "#7A8B5C" : "#D4742C", color: "#FFF8EF", fontSize: 13, fontWeight: 600,
+                    background: "#39FF14", color: "#0A0A0A", fontSize: 13, fontWeight: 600,
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+                    opacity: logged ? 0.6 : 1,
                   }}
                 >
                   {logged ? <><Check size={14} /> Logged</> : "Log meal"}
@@ -785,32 +786,32 @@ function MealsTab({ state, setState, targets }) {
 
 function RecipeModal({ meal, onClose }) {
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(28,20,16,0.5)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 50 }} onClick={onClose}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 50 }} onClick={onClose}>
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{ background: "#FFF8EF", borderRadius: "24px 24px 0 0", padding: "1.5rem", maxWidth: 480, width: "100%", maxHeight: "80vh", overflowY: "auto" }}
+        style={{ background: "#141414", border: "1px solid #262626", borderRadius: "24px 24px 0 0", padding: "1.5rem", maxWidth: 480, width: "100%", maxHeight: "80vh", overflowY: "auto" }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-          <h2 style={{ fontSize: 19, fontWeight: 700, color: "#1C1410" }}>{meal.name}</h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#8A7B68" }}>
+          <h2 style={{ fontSize: 19, fontWeight: 700, color: "#E8E8E8" }}>{meal.name}</h2>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#8A8A8A" }}>
             <X size={22} />
           </button>
         </div>
-        <p style={{ fontSize: 13, color: "#8A7B68", marginBottom: "1.25rem" }}>
+        <p style={{ fontSize: 13, color: "#39FF14", marginBottom: "1.25rem" }}>
           {meal.calories} kcal · {meal.protein}g protein · {meal.carbs}g carbs · {meal.fat}g fat
         </p>
 
-        <p style={{ fontSize: 13, fontWeight: 700, color: "#1C1410", marginBottom: 8, letterSpacing: "0.02em" }}>INGREDIENTS</p>
+        <p style={{ fontSize: 13, fontWeight: 700, color: "#E8E8E8", marginBottom: 8, letterSpacing: "0.02em" }}>INGREDIENTS</p>
         <ul style={{ marginBottom: "1.25rem", paddingLeft: 18 }}>
           {meal.ingredients.map((ing, i) => (
-            <li key={i} style={{ fontSize: 14, color: "#3A2E22", marginBottom: 5, lineHeight: 1.5 }}>{ing}</li>
+            <li key={i} style={{ fontSize: 14, color: "#A8A8A8", marginBottom: 5, lineHeight: 1.5 }}>{ing}</li>
           ))}
         </ul>
 
-        <p style={{ fontSize: 13, fontWeight: 700, color: "#1C1410", marginBottom: 8, letterSpacing: "0.02em" }}>STEPS</p>
+        <p style={{ fontSize: 13, fontWeight: 700, color: "#E8E8E8", marginBottom: 8, letterSpacing: "0.02em" }}>STEPS</p>
         <ol style={{ paddingLeft: 18 }}>
           {meal.steps.map((step, i) => (
-            <li key={i} style={{ fontSize: 14, color: "#3A2E22", marginBottom: 8, lineHeight: 1.5 }}>{step}</li>
+            <li key={i} style={{ fontSize: 14, color: "#A8A8A8", marginBottom: 8, lineHeight: 1.5 }}>{step}</li>
           ))}
         </ol>
       </div>
@@ -833,32 +834,32 @@ function WaterTab({ state, setState }) {
 
   return (
     <div style={{ padding: "1.25rem 1.25rem 6rem", display: "flex", flexDirection: "column", alignItems: "center" }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1C1410", marginBottom: "0.25rem", alignSelf: "flex-start" }}>Water tracker</h1>
-      <p style={{ fontSize: 13, color: "#8A7B68", marginBottom: "2rem", alignSelf: "flex-start" }}>
+      <h1 style={{ fontSize: 22, fontWeight: 700, color: "#E8E8E8", marginBottom: "0.25rem", alignSelf: "flex-start" }}>Water tracker</h1>
+      <p style={{ fontSize: 13, color: "#8A8A8A", marginBottom: "2rem", alignSelf: "flex-start" }}>
         Staying hydrated supports digestion when you're eating bigger volumes of food.
       </p>
 
-      <div style={{ fontSize: 56, fontWeight: 700, color: "#1C1410", marginBottom: 4 }}>{today.water}</div>
-      <p style={{ fontSize: 14, color: "#8A7B68", marginBottom: "1.5rem" }}>of {goal} cups today</p>
+      <div style={{ fontSize: 56, fontWeight: 700, color: "#39C5FF", marginBottom: 4 }}>{today.water}</div>
+      <p style={{ fontSize: 14, color: "#8A8A8A", marginBottom: "1.5rem" }}>of {goal} cups today</p>
 
       <div style={{ display: "flex", gap: 8, marginBottom: "2rem", flexWrap: "wrap", justifyContent: "center", maxWidth: 320 }}>
         {Array.from({ length: goal }).map((_, i) => (
-          <Droplet key={i} size={28} fill={i < today.water ? "#7AA7C9" : "none"} color={i < today.water ? "#7AA7C9" : "#D9CFBB"} strokeWidth={1.5} />
+          <Droplet key={i} size={28} fill={i < today.water ? "#39C5FF" : "none"} color={i < today.water ? "#39C5FF" : "#333333"} strokeWidth={1.5} />
         ))}
       </div>
 
       <div style={{ display: "flex", gap: 14 }}>
         <button
           onClick={() => adjust(-1)}
-          style={{ width: 56, height: 56, borderRadius: "50%", border: "1px solid #EFE7D8", background: "#FFFFFF", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+          style={{ width: 56, height: 56, borderRadius: "50%", border: "1px solid #262626", background: "#141414", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
         >
-          <Minus size={22} color="#1C1410" />
+          <Minus size={22} color="#E8E8E8" />
         </button>
         <button
           onClick={() => adjust(1)}
-          style={{ width: 56, height: 56, borderRadius: "50%", border: "none", background: "#D4742C", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+          style={{ width: 56, height: 56, borderRadius: "50%", border: "none", background: "#39FF14", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
         >
-          <Plus size={22} color="#FFF8EF" />
+          <Plus size={22} color="#0A0A0A" />
         </button>
       </div>
     </div>
@@ -892,16 +893,16 @@ function ProfileTab({ state, setState, targets }) {
 
   return (
     <div style={{ padding: "1.25rem 1.25rem 6rem" }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1C1410", marginBottom: "1.25rem" }}>Profile & progress</h1>
+      <h1 style={{ fontSize: 22, fontWeight: 700, color: "#E8E8E8", marginBottom: "1.25rem" }}>Profile & progress</h1>
 
-      <div style={{ background: "#FFFFFF", border: "1px solid #EFE7D8", borderRadius: 18, padding: "1.25rem", marginBottom: "1rem" }}>
+      <div style={{ background: "#141414", border: "1px solid #262626", borderRadius: 18, padding: "1.25rem", marginBottom: "1rem" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: "1rem" }}>
-          <div style={{ width: 50, height: 50, borderRadius: "50%", background: "#D4742C", display: "flex", alignItems: "center", justifyContent: "center", color: "#FFF8EF", fontWeight: 700, fontSize: 18 }}>
+          <div style={{ width: 50, height: 50, borderRadius: "50%", background: "#39FF14", display: "flex", alignItems: "center", justifyContent: "center", color: "#0A0A0A", fontWeight: 700, fontSize: 18 }}>
             {state.profile.name.charAt(0).toUpperCase()}
           </div>
           <div>
-            <p style={{ fontWeight: 700, fontSize: 17, color: "#1C1410" }}>{state.profile.name}</p>
-            <p style={{ fontSize: 13, color: "#8A7B68" }}>{state.profile.age} yrs · {Math.floor(state.profile.height / 12)}'{state.profile.height % 12}" · {state.profile.sex}</p>
+            <p style={{ fontWeight: 700, fontSize: 17, color: "#E8E8E8" }}>{state.profile.name}</p>
+            <p style={{ fontSize: 13, color: "#8A8A8A" }}>{state.profile.age} yrs · {Math.floor(state.profile.height / 12)}'{state.profile.height % 12}" · {state.profile.sex}</p>
           </div>
         </div>
 
@@ -914,7 +915,7 @@ function ProfileTab({ state, setState, targets }) {
         {!editing ? (
           <button
             onClick={() => setEditing(true)}
-            style={{ width: "100%", padding: "11px 0", borderRadius: 12, border: "1px solid #EFE7D8", background: "#FBF7EF", color: "#1C1410", fontWeight: 600, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+            style={{ width: "100%", padding: "11px 0", borderRadius: 12, border: "1px solid #262626", background: "#0A0A0A", color: "#E8E8E8", fontWeight: 600, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
           >
             <Edit3 size={14} /> Log today's weight
           </button>
@@ -924,29 +925,29 @@ function ProfileTab({ state, setState, targets }) {
               type="number"
               value={weightInput}
               onChange={(e) => setWeightInput(e.target.value)}
-              style={{ flex: 1, padding: "10px 12px", borderRadius: 10, border: "1px solid #E5DDD0", fontSize: 15 }}
+              style={{ flex: 1, padding: "10px 12px", borderRadius: 10, border: "1px solid #333333", background: "#0A0A0A", color: "#E8E8E8", fontSize: 15 }}
             />
-            <button onClick={logWeight} style={{ padding: "10px 16px", borderRadius: 10, border: "none", background: "#7A8B5C", color: "#FFF8EF", fontWeight: 600, cursor: "pointer" }}>
+            <button onClick={logWeight} style={{ padding: "10px 16px", borderRadius: 10, border: "none", background: "#39FF14", color: "#0A0A0A", fontWeight: 600, cursor: "pointer" }}>
               Save
             </button>
           </div>
         )}
       </div>
 
-      <div style={{ background: "#FFFFFF", border: "1px solid #EFE7D8", borderRadius: 18, padding: "1.25rem", marginBottom: "1rem" }}>
-        <p style={{ fontWeight: 600, fontSize: 15, color: "#1C1410", marginBottom: 10 }}>Daily targets</p>
+      <div style={{ background: "#141414", border: "1px solid #262626", borderRadius: 18, padding: "1.25rem", marginBottom: "1rem" }}>
+        <p style={{ fontWeight: 600, fontSize: 15, color: "#E8E8E8", marginBottom: 10 }}>Daily targets</p>
         <TargetRow label="Calories" value={`${targets.targetCalories} kcal`} sub={`maintenance ~${targets.tdee} kcal`} />
         <TargetRow label="Protein" value={`${targets.proteinTarget} g`} sub="~1g per lb bodyweight" />
         <TargetRow label="Carbs" value={`${targets.carbsTarget} g`} />
         <TargetRow label="Fat" value={`${targets.fatTarget} g`} />
       </div>
 
-      <div style={{ background: "#FFFFFF", border: "1px solid #EFE7D8", borderRadius: 18, padding: "1.25rem" }}>
-        <p style={{ fontWeight: 600, fontSize: 15, color: "#1C1410", marginBottom: 4 }}>Progress since start</p>
-        <p style={{ fontSize: 28, fontWeight: 700, color: totalGain >= 0 ? "#7A8B5C" : "#B8483F" }}>
+      <div style={{ background: "#141414", border: "1px solid #262626", borderRadius: 18, padding: "1.25rem" }}>
+        <p style={{ fontWeight: 600, fontSize: 15, color: "#E8E8E8", marginBottom: 4 }}>Progress since start</p>
+        <p style={{ fontSize: 28, fontWeight: 700, color: totalGain >= 0 ? "#39FF14" : "#FF4D4D" }}>
           {totalGain > 0 ? "+" : ""}{totalGain} lb
         </p>
-        <p style={{ fontSize: 12, color: "#8A7B68" }}>since {state.profile.createdAt}</p>
+        <p style={{ fontSize: 12, color: "#8A8A8A" }}>since {state.profile.createdAt}</p>
       </div>
     </div>
   );
@@ -954,21 +955,21 @@ function ProfileTab({ state, setState, targets }) {
 
 function MiniStat({ label, value }) {
   return (
-    <div style={{ background: "#FBF7EF", borderRadius: 12, padding: "10px 8px", textAlign: "center" }}>
-      <p style={{ fontSize: 11, color: "#8A7B68", marginBottom: 2 }}>{label}</p>
-      <p style={{ fontSize: 15, fontWeight: 700, color: "#1C1410" }}>{value}</p>
+    <div style={{ background: "#0A0A0A", border: "1px solid #262626", borderRadius: 12, padding: "10px 8px", textAlign: "center" }}>
+      <p style={{ fontSize: 11, color: "#8A8A8A", marginBottom: 2 }}>{label}</p>
+      <p style={{ fontSize: 15, fontWeight: 700, color: "#E8E8E8" }}>{value}</p>
     </div>
   );
 }
 
 function TargetRow({ label, value, sub }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "8px 0", borderBottom: "1px solid #F2EEE3" }}>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "8px 0", borderBottom: "1px solid #262626" }}>
       <div>
-        <span style={{ fontSize: 14, color: "#1C1410" }}>{label}</span>
-        {sub && <span style={{ fontSize: 11, color: "#A89A86", marginLeft: 6 }}>{sub}</span>}
+        <span style={{ fontSize: 14, color: "#E8E8E8" }}>{label}</span>
+        {sub && <span style={{ fontSize: 11, color: "#666666", marginLeft: 6 }}>{sub}</span>}
       </div>
-      <span style={{ fontSize: 14, fontWeight: 600, color: "#1C1410" }}>{value}</span>
+      <span style={{ fontSize: 14, fontWeight: 600, color: "#E8E8E8" }}>{value}</span>
     </div>
   );
 }
@@ -993,7 +994,7 @@ export default function Tracker({ onExit }) {
 
   if (!state.profile) {
     return (
-      <div style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", background: "#FAF6EE", minHeight: "600px" }}>
+      <div style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", background: "#0A0A0A", minHeight: "600px" }}>
         <Onboarding
           onComplete={(profile) => setState({ profile: { ...profile, waterGoal: 10 }, daily: { [todayKey()]: { calories: 0, protein: 0, carbs: 0, fat: 0, water: 0, completedExercises: [], loggedMeals: [] } } })}
         />
@@ -1012,7 +1013,7 @@ export default function Tracker({ onExit }) {
   ];
 
   return (
-    <div style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", background: "#FAF6EE", minHeight: "600px", maxWidth: 480, margin: "0 auto", position: "relative", borderRadius: 0 }}>
+    <div style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", background: "#0A0A0A", minHeight: "600px", maxWidth: 480, margin: "0 auto", position: "relative", borderRadius: 0 }}>
       {tab === "home" && <Dashboard state={state} setState={setState} targets={targets} setTab={setTab} />}
       {tab === "gym" && <GymTab state={state} setState={setState} />}
       {tab === "meals" && <MealsTab state={state} setState={setState} targets={targets} />}
@@ -1023,15 +1024,15 @@ export default function Tracker({ onExit }) {
         <button
           onClick={onExit}
           style={{
-            position: "absolute", top: 14, left: 14, background: "rgba(255,255,255,0.9)",
-            border: "1px solid #EFE7D8", borderRadius: 10, padding: "6px 10px", fontSize: 12,
-            color: "#8A7B68", cursor: "pointer", zIndex: 5, fontWeight: 500,
+            position: "absolute", top: 14, left: 14, background: "rgba(20,20,20,0.9)",
+            border: "1px solid #333333", borderRadius: 10, padding: "6px 10px", fontSize: 12,
+            color: "#8A8A8A", cursor: "pointer", zIndex: 5, fontWeight: 500,
           }}
         >
           ← Site
         </button>
       )}
-      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "#FFFFFF", borderTop: "1px solid #EFE7D8", display: "flex", justifyContent: "space-around", padding: "10px 4px 14px" }}>
+      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "#141414", borderTop: "1px solid #262626", display: "flex", justifyContent: "space-around", padding: "10px 4px 14px" }}>
         {tabs.map(([key, label, icon]) => (
           <button
             key={key}
@@ -1039,7 +1040,7 @@ export default function Tracker({ onExit }) {
             style={{
               display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
               background: "none", border: "none", cursor: "pointer",
-              color: tab === key ? "#D4742C" : "#A89A86",
+              color: tab === key ? "#39FF14" : "#666666",
               flex: 1,
             }}
           >
