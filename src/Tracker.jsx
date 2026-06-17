@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
   Home, Dumbbell, UtensilsCrossed, Droplets, User, ChevronRight,
   ChevronLeft, Plus, Minus, Flame, Beef, Wheat, Droplet, X, Check,
-  ExternalLink, Calendar, TrendingUp, Award, Edit3
+  ExternalLink, Calendar, TrendingUp, Award, Edit3, Moon
 } from "lucide-react";
 
 /* ---------------------------------------------------------
@@ -271,6 +271,54 @@ const MEAL_DATABASE = {
   ],
 };
 
+/* ---------------------------------------------------------
+   DATA: common foods reference (offline lookup for custom logging)
+   Macros are per typical serving listed — approximate values for
+   whole foods and well-known items, used to auto-fill the custom
+   meal logger. Not a live database; covers common staples only.
+--------------------------------------------------------- */
+const COMMON_FOODS = [
+  { name: "Chicken breast (6 oz, cooked)", calories: 280, protein: 53, carbs: 0, fat: 6 },
+  { name: "Steak, sirloin (8 oz, cooked)", calories: 490, protein: 62, carbs: 0, fat: 24 },
+  { name: "Ground beef 85/15 (6 oz, cooked)", calories: 470, protein: 42, carbs: 0, fat: 32 },
+  { name: "Salmon (6 oz, cooked)", calories: 350, protein: 39, carbs: 0, fat: 21 },
+  { name: "Pork chop (6 oz, cooked)", calories: 380, protein: 48, carbs: 0, fat: 19 },
+  { name: "Turkey breast (6 oz, cooked)", calories: 260, protein: 50, carbs: 0, fat: 5 },
+  { name: "Bacon (3 slices)", calories: 130, protein: 9, carbs: 0, fat: 10 },
+  { name: "Eggs, whole (2 large)", calories: 140, protein: 12, carbs: 1, fat: 10 },
+  { name: "Egg whites (1 cup)", calories: 130, protein: 27, carbs: 2, fat: 0 },
+  { name: "White rice, cooked (1 cup)", calories: 205, protein: 4, carbs: 45, fat: 0 },
+  { name: "Brown rice, cooked (1 cup)", calories: 215, protein: 5, carbs: 45, fat: 2 },
+  { name: "Pasta, cooked (1 cup)", calories: 220, protein: 8, carbs: 43, fat: 1 },
+  { name: "Bread, white (2 slices)", calories: 160, protein: 6, carbs: 30, fat: 2 },
+  { name: "Bagel, plain (1 whole)", calories: 290, protein: 11, carbs: 56, fat: 2 },
+  { name: "Oats, dry (1 cup)", calories: 300, protein: 10, carbs: 54, fat: 5 },
+  { name: "Potato, baked (1 medium)", calories: 160, protein: 4, carbs: 37, fat: 0 },
+  { name: "Sweet potato, baked (1 medium)", calories: 115, protein: 2, carbs: 27, fat: 0 },
+  { name: "Avocado (1 whole)", calories: 240, protein: 3, carbs: 13, fat: 22 },
+  { name: "Banana (1 medium)", calories: 105, protein: 1, carbs: 27, fat: 0 },
+  { name: "Apple (1 medium)", calories: 95, protein: 0, carbs: 25, fat: 0 },
+  { name: "Peanut butter (2 tbsp)", calories: 190, protein: 7, carbs: 7, fat: 16 },
+  { name: "Almonds (1/4 cup)", calories: 205, protein: 7, carbs: 8, fat: 18 },
+  { name: "Greek yogurt, full-fat (1 cup)", calories: 220, protein: 20, carbs: 9, fat: 11 },
+  { name: "Cottage cheese, full-fat (1 cup)", calories: 220, protein: 25, carbs: 8, fat: 10 },
+  { name: "Milk, whole (1 cup)", calories: 150, protein: 8, carbs: 12, fat: 8 },
+  { name: "Cheddar cheese (1 oz)", calories: 115, protein: 7, carbs: 0, fat: 9 },
+  { name: "Whey protein (1 scoop)", calories: 120, protein: 24, carbs: 3, fat: 1 },
+  { name: "Broccoli, steamed (1 cup)", calories: 55, protein: 4, carbs: 11, fat: 0 },
+  { name: "Mixed vegetables, cooked (1 cup)", calories: 80, protein: 3, carbs: 17, fat: 0 },
+  { name: "Black beans, cooked (1 cup)", calories: 225, protein: 15, carbs: 41, fat: 1 },
+  { name: "Tortilla, flour (1 large)", calories: 210, protein: 6, carbs: 35, fat: 6 },
+  { name: "McDonald's Big Mac", calories: 550, protein: 25, carbs: 45, fat: 30 },
+  { name: "McDonald's medium fries", calories: 320, protein: 4, carbs: 43, fat: 15 },
+  { name: "Chipotle chicken bowl (typical build)", calories: 685, protein: 45, carbs: 70, fat: 24 },
+  { name: "Chick-fil-A chicken sandwich", calories: 440, protein: 28, carbs: 41, fat: 19 },
+  { name: "Subway 6-inch turkey sub", calories: 280, protein: 18, carbs: 46, fat: 4 },
+  { name: "Domino's pepperoni slice (1 slice, large)", calories: 300, protein: 12, carbs: 33, fat: 13 },
+  { name: "Starbucks venti caffe latte (whole milk)", calories: 250, protein: 14, carbs: 20, fat: 13 },
+  { name: "Protein bar (typical, 1 bar)", calories: 220, protein: 20, carbs: 23, fat: 8 },
+];
+
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 /* ---------------------------------------------------------
@@ -281,6 +329,16 @@ function calcBMR(weightLbs, heightIn, age, sex) {
   const cm = heightIn * 2.54;
   const base = 10 * kg + 6.25 * cm - 5 * age;
   return sex === "male" ? base + 5 : base - 161;
+}
+
+function calcSuggestedGoalWeight(heightIn) {
+  // Targets the middle of the healthy BMI range (18.5–25), landing around BMI 22.
+  // This gives a sensible, evidence-based default without requiring the user to know their own target.
+  const heightM = heightIn * 0.0254;
+  const targetBMI = 22;
+  const kg = targetBMI * heightM * heightM;
+  const lbs = kg / 0.453592;
+  return Math.round(lbs);
 }
 
 function calcTargets(profile) {
@@ -324,7 +382,7 @@ function youtubeSearchUrl(exerciseName) {
 function Onboarding({ onComplete }) {
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
-    name: "", age: "", sex: "male", height: "", weight: "", goalWeight: "", goalPace: "moderate",
+    name: "", age: "", sex: "male", height: "", weight: "", goalWeight: "", goalWeightMode: null, goalPace: "moderate",
   });
 
   const steps = [
@@ -333,12 +391,24 @@ function Onboarding({ onComplete }) {
     { key: "sex", label: "Sex (used for calorie calculation)", type: "select", options: [["male", "Male"], ["female", "Female"]] },
     { key: "height", label: "Height (inches)", type: "number", placeholder: 'e.g. 70 for 5\'10"' },
     { key: "weight", label: "Current weight (lbs)", type: "number", placeholder: "Current weight" },
-    { key: "goalWeight", label: "Goal weight (lbs)", type: "number", placeholder: "Where you want to get to" },
+    { key: "goalWeight", label: "Your goal weight", type: "goalWeight" },
     { key: "goalPace", label: "How fast do you want to gain?", type: "select", options: [["lean", "Slow & lean (~0.25 lb/week)"], ["moderate", "Moderate (~0.5 lb/week)"], ["aggressive", "Faster gain (~1 lb/week)"]] },
   ];
 
   const current = steps[step];
-  const canProceed = form[current.key] !== "" && form[current.key] !== null;
+
+  // The moment the user picks "calculated", fill in the suggested number based on height.
+  useEffect(() => {
+    if (current.key === "goalWeight" && form.goalWeightMode === "calculated" && form.height) {
+      const suggested = calcSuggestedGoalWeight(Number(form.height));
+      setForm((f) => ({ ...f, goalWeight: String(suggested) }));
+    }
+  }, [form.goalWeightMode]);
+
+  const canProceed =
+    current.key === "goalWeight"
+      ? form.goalWeightMode === "calculated" || (form.goalWeightMode === "custom" && form.goalWeight !== "")
+      : form[current.key] !== "" && form[current.key] !== null;
 
   function next() {
     if (step < steps.length - 1) setStep(step + 1);
@@ -351,6 +421,7 @@ function Onboarding({ onComplete }) {
         goalWeight: Number(form.goalWeight),
         startWeight: Number(form.weight),
         createdAt: todayKey(),
+        weightHistory: [{ date: todayKey(), weight: Number(form.weight) }],
       };
       onComplete(profile);
     }
@@ -391,6 +462,83 @@ function Onboarding({ onComplete }) {
               {label}
             </button>
           ))}
+        </div>
+      ) : current.type === "goalWeight" ? (
+        <div style={{ marginBottom: "2rem" }}>
+          {form.goalWeightMode === null && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <button
+                onClick={() => setForm({ ...form, goalWeightMode: "calculated" })}
+                style={{
+                  padding: "16px", borderRadius: 12, border: "1px solid #2A4A1F", background: "#0F1F0A",
+                  textAlign: "left", cursor: "pointer",
+                }}
+              >
+                <p style={{ fontSize: 15, fontWeight: 600, color: "#39FF14", margin: "0 0 4px" }}>Calculate it for me</p>
+                <p style={{ fontSize: 13, color: "#8A8A8A", margin: 0, lineHeight: 1.4 }}>
+                  We'll suggest a healthy goal weight based on your height
+                </p>
+              </button>
+              <button
+                onClick={() => setForm({ ...form, goalWeightMode: "custom", goalWeight: "" })}
+                style={{
+                  padding: "16px", borderRadius: 12, border: "1px solid #333333", background: "#141414",
+                  textAlign: "left", cursor: "pointer",
+                }}
+              >
+                <p style={{ fontSize: 15, fontWeight: 600, color: "#E8E8E8", margin: "0 0 4px" }}>I'll set my own target</p>
+                <p style={{ fontSize: 13, color: "#8A8A8A", margin: 0, lineHeight: 1.4 }}>
+                  Enter a specific number you're aiming for
+                </p>
+              </button>
+            </div>
+          )}
+
+          {form.goalWeightMode === "calculated" && (
+            <div>
+              <div style={{ background: "#0F1F0A", border: "1px solid #2A4A1F", borderRadius: 14, padding: "1.25rem", marginBottom: 14, textAlign: "center" }}>
+                <p style={{ fontSize: 12, color: "#39FF14", fontWeight: 600, marginBottom: 8, letterSpacing: "0.02em" }}>
+                  YOUR SUGGESTED GOAL
+                </p>
+                <p style={{ fontSize: 36, fontWeight: 700, color: "#E8E8E8", margin: "0 0 6px" }}>
+                  {form.goalWeight} lb
+                </p>
+                <p style={{ fontSize: 13, color: "#8A8A8A", lineHeight: 1.5, margin: 0 }}>
+                  Based on a healthy weight range for your height
+                </p>
+              </div>
+              <button
+                onClick={() => setForm({ ...form, goalWeightMode: null, goalWeight: "" })}
+                style={{ width: "100%", padding: "10px", borderRadius: 10, border: "none", background: "none", color: "#8A8A8A", fontSize: 13, cursor: "pointer", textDecoration: "underline" }}
+              >
+                Pick a different option
+              </button>
+            </div>
+          )}
+
+          {form.goalWeightMode === "custom" && (
+            <div>
+              <input
+                autoFocus
+                type="number"
+                placeholder="Goal weight (lbs)"
+                value={form.goalWeight}
+                onChange={(e) => setForm({ ...form, goalWeight: e.target.value })}
+                onKeyDown={(e) => { if (e.key === "Enter" && canProceed) next(); }}
+                style={{
+                  width: "100%", padding: "14px 16px", fontSize: 17, borderRadius: 12,
+                  border: "1px solid #333333", outline: "none", background: "#141414", color: "#E8E8E8",
+                  boxSizing: "border-box", marginBottom: 12,
+                }}
+              />
+              <button
+                onClick={() => setForm({ ...form, goalWeightMode: null, goalWeight: "" })}
+                style={{ width: "100%", padding: "10px", borderRadius: 10, border: "none", background: "none", color: "#8A8A8A", fontSize: 13, cursor: "pointer", textDecoration: "underline" }}
+              >
+                Pick a different option
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <input
@@ -517,13 +665,18 @@ function Dashboard({ state, setState, targets, setTab }) {
         <p style={{ fontSize: 13, color: "#8A8A8A" }}>Breakfast, lunch, dinner, and snacks lined up to hit {targets.targetCalories} kcal</p>
       </SectionCard>
 
-      {/* Water tracker quick */}
-      <SectionCard title="Water" onClick={() => setTab("water")} icon={<Droplets size={18} color="#39FF14" />}>
+      {/* Recovery quick link */}
+      <SectionCard title="Recovery" onClick={() => setTab("recovery")} icon={<Moon size={18} color="#39FF14" />}>
         <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
           {Array.from({ length: state.profile.waterGoal || 10 }).map((_, i) => (
             <div key={i} style={{ width: 16, height: 22, borderRadius: 4, background: i < today.water ? "#39C5FF" : "#262626" }} />
           ))}
         </div>
+        {today.sleep && (
+          <p style={{ fontSize: 12, color: "#8A8A8A", marginTop: 8, marginBottom: 0 }}>
+            Last night: {today.sleep.hours.toFixed(1)}h sleep
+          </p>
+        )}
       </SectionCard>
     </div>
   );
@@ -679,15 +832,17 @@ function GymTab({ state, setState }) {
    Meals tab
 --------------------------------------------------------- */
 function emptyDay(state) {
-  return { calories: 0, protein: 0, carbs: 0, fat: 0, water: 0, completedExercises: [], loggedMeals: [] };
+  return { calories: 0, protein: 0, carbs: 0, fat: 0, water: 0, completedExercises: [], loggedMeals: [], customMeals: [], sleep: null };
 }
 
 function MealsTab({ state, setState, targets }) {
   const [activeCategory, setActiveCategory] = useState("breakfast");
   const [recipeModal, setRecipeModal] = useState(null);
+  const [customModalOpen, setCustomModalOpen] = useState(false);
   const dateKey = todayKey();
   const today = state.daily[dateKey] || emptyDay(state);
   const loggedIds = today.loggedMeals || [];
+  const customMeals = today.customMeals || [];
 
   function logMeal(meal) {
     const isLogged = loggedIds.includes(meal.id);
@@ -708,6 +863,30 @@ function MealsTab({ state, setState, targets }) {
     setState({ ...state, daily: { ...state.daily, [dateKey]: updatedDay } });
   }
 
+  function addCustomMeal(entry) {
+    const updatedDay = { ...emptyDay(state), ...today };
+    const newEntry = { ...entry, id: `custom-${Date.now()}` };
+    updatedDay.customMeals = [...customMeals, newEntry];
+    updatedDay.calories += entry.calories;
+    updatedDay.protein += entry.protein;
+    updatedDay.carbs += entry.carbs;
+    updatedDay.fat += entry.fat;
+    setState({ ...state, daily: { ...state.daily, [dateKey]: updatedDay } });
+    setCustomModalOpen(false);
+  }
+
+  function removeCustomMeal(id) {
+    const entry = customMeals.find((m) => m.id === id);
+    if (!entry) return;
+    const updatedDay = { ...emptyDay(state), ...today };
+    updatedDay.customMeals = customMeals.filter((m) => m.id !== id);
+    updatedDay.calories -= entry.calories;
+    updatedDay.protein -= entry.protein;
+    updatedDay.carbs -= entry.carbs;
+    updatedDay.fat -= entry.fat;
+    setState({ ...state, daily: { ...state.daily, [dateKey]: updatedDay } });
+  }
+
   const categories = [
     ["breakfast", "Breakfast"],
     ["lunch", "Lunch"],
@@ -721,6 +900,38 @@ function MealsTab({ state, setState, targets }) {
       <p style={{ fontSize: 13, color: "#8A8A8A", marginBottom: "1.1rem" }}>
         Daily target: {targets.targetCalories} kcal · {targets.proteinTarget}g protein
       </p>
+
+      <button
+        onClick={() => setCustomModalOpen(true)}
+        style={{
+          width: "100%", padding: "13px 0", borderRadius: 12, border: "1px dashed #39FF14", background: "#0F1F0A",
+          color: "#39FF14", fontWeight: 600, fontSize: 14, cursor: "pointer", marginBottom: "1.1rem",
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+        }}
+      >
+        <Plus size={16} /> Log what you actually ate
+      </button>
+
+      {customMeals.length > 0 && (
+        <div style={{ marginBottom: "1.1rem" }}>
+          <p style={{ fontSize: 12, color: "#8A8A8A", fontWeight: 600, marginBottom: 8, letterSpacing: "0.02em" }}>LOGGED TODAY</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {customMeals.map((m) => (
+              <div key={m.id} style={{ background: "#141414", border: "1px solid #262626", borderRadius: 14, padding: "0.85rem 1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <p style={{ fontWeight: 600, fontSize: 14, color: "#E8E8E8", marginBottom: 2 }}>{m.name}</p>
+                  <p style={{ fontSize: 12, color: "#8A8A8A" }}>{m.calories} kcal · P{m.protein} C{m.carbs} F{m.fat}</p>
+                </div>
+                <button onClick={() => removeCustomMeal(m.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "#8A8A8A", padding: 4 }}>
+                  <X size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <p style={{ fontSize: 12, color: "#8A8A8A", fontWeight: 600, marginBottom: 8, letterSpacing: "0.02em" }}>OUR SUGGESTIONS</p>
 
       <div style={{ display: "flex", gap: 6, marginBottom: "1.25rem" }}>
         {categories.map(([key, label]) => (
@@ -780,6 +991,10 @@ function MealsTab({ state, setState, targets }) {
       {recipeModal && (
         <RecipeModal meal={recipeModal} onClose={() => setRecipeModal(null)} />
       )}
+
+      {customModalOpen && (
+        <CustomMealModal onClose={() => setCustomModalOpen(false)} onSave={addCustomMeal} />
+      )}
     </div>
   );
 }
@@ -819,49 +1034,339 @@ function RecipeModal({ meal, onClose }) {
   );
 }
 
+function CustomMealModal({ onClose, onSave }) {
+  const [mode, setMode] = useState("search"); // "search" or "manual"
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState(null);
+  const [manual, setManual] = useState({ name: "", calories: "", protein: "", carbs: "", fat: "" });
+
+  const matches = query.trim().length > 0
+    ? COMMON_FOODS.filter((f) => f.name.toLowerCase().includes(query.trim().toLowerCase())).slice(0, 6)
+    : [];
+
+  function handleSave() {
+    if (mode === "search" && selected) {
+      onSave({ name: selected.name, calories: selected.calories, protein: selected.protein, carbs: selected.carbs, fat: selected.fat });
+    } else if (mode === "manual") {
+      onSave({
+        name: manual.name || "Custom food",
+        calories: Number(manual.calories) || 0,
+        protein: Number(manual.protein) || 0,
+        carbs: Number(manual.carbs) || 0,
+        fat: Number(manual.fat) || 0,
+      });
+    }
+  }
+
+  const canSave = mode === "search" ? !!selected : manual.name.trim() !== "" && manual.calories !== "";
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 50 }} onClick={onClose}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{ background: "#141414", border: "1px solid #262626", borderRadius: "24px 24px 0 0", padding: "1.5rem", maxWidth: 480, width: "100%", maxHeight: "85vh", overflowY: "auto" }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+          <h2 style={{ fontSize: 19, fontWeight: 700, color: "#E8E8E8" }}>Log what you ate</h2>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#8A8A8A" }}>
+            <X size={22} />
+          </button>
+        </div>
+
+        <div style={{ display: "flex", gap: 6, marginBottom: "1.25rem" }}>
+          <button
+            onClick={() => setMode("search")}
+            style={{
+              flex: 1, padding: "9px 0", borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer",
+              border: "1px solid #262626", background: mode === "search" ? "#39FF14" : "#0A0A0A",
+              color: mode === "search" ? "#0A0A0A" : "#E8E8E8",
+            }}
+          >
+            Search foods
+          </button>
+          <button
+            onClick={() => setMode("manual")}
+            style={{
+              flex: 1, padding: "9px 0", borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer",
+              border: "1px solid #262626", background: mode === "manual" ? "#39FF14" : "#0A0A0A",
+              color: mode === "manual" ? "#0A0A0A" : "#E8E8E8",
+            }}
+          >
+            Enter manually
+          </button>
+        </div>
+
+        {mode === "search" ? (
+          <div>
+            <input
+              autoFocus
+              type="text"
+              placeholder="Try 'chicken breast' or 'Big Mac'"
+              value={query}
+              onChange={(e) => { setQuery(e.target.value); setSelected(null); }}
+              style={{
+                width: "100%", padding: "13px 14px", borderRadius: 12, border: "1px solid #333333",
+                background: "#0A0A0A", color: "#E8E8E8", fontSize: 15, outline: "none", boxSizing: "border-box", marginBottom: 12,
+              }}
+            />
+            {matches.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 14 }}>
+                {matches.map((f) => (
+                  <button
+                    key={f.name}
+                    onClick={() => { setSelected(f); setQuery(f.name); }}
+                    style={{
+                      textAlign: "left", padding: "11px 14px", borderRadius: 12, cursor: "pointer",
+                      border: selected?.name === f.name ? "2px solid #39FF14" : "1px solid #262626",
+                      background: selected?.name === f.name ? "#0F1F0A" : "#0A0A0A",
+                    }}
+                  >
+                    <p style={{ fontSize: 14, fontWeight: 600, color: "#E8E8E8", margin: "0 0 2px" }}>{f.name}</p>
+                    <p style={{ fontSize: 12, color: "#8A8A8A", margin: 0 }}>{f.calories} kcal · P{f.protein} C{f.carbs} F{f.fat}</p>
+                  </button>
+                ))}
+              </div>
+            )}
+            {query.trim().length > 0 && matches.length === 0 && (
+              <p style={{ fontSize: 13, color: "#8A8A8A", marginBottom: 14, lineHeight: 1.5 }}>
+                No match in our list yet — try "Enter manually" above to log it with your own numbers.
+              </p>
+            )}
+            {selected && (
+              <div style={{ background: "#0F1F0A", border: "1px solid #2A4A1F", borderRadius: 14, padding: "1rem", marginBottom: 14 }}>
+                <p style={{ fontSize: 12, color: "#39FF14", fontWeight: 600, marginBottom: 4 }}>SELECTED</p>
+                <p style={{ fontSize: 15, fontWeight: 700, color: "#E8E8E8", margin: "0 0 4px" }}>{selected.name}</p>
+                <p style={{ fontSize: 13, color: "#8A8A8A", margin: 0 }}>
+                  {selected.calories} kcal · P{selected.protein}g C{selected.carbs}g F{selected.fat}g
+                </p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <input
+              type="text"
+              placeholder="What did you eat?"
+              value={manual.name}
+              onChange={(e) => setManual({ ...manual, name: e.target.value })}
+              style={{ padding: "13px 14px", borderRadius: 12, border: "1px solid #333333", background: "#0A0A0A", color: "#E8E8E8", fontSize: 15, outline: "none" }}
+            />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <input
+                type="number"
+                placeholder="Calories"
+                value={manual.calories}
+                onChange={(e) => setManual({ ...manual, calories: e.target.value })}
+                style={{ padding: "13px 14px", borderRadius: 12, border: "1px solid #333333", background: "#0A0A0A", color: "#E8E8E8", fontSize: 15, outline: "none" }}
+              />
+              <input
+                type="number"
+                placeholder="Protein (g)"
+                value={manual.protein}
+                onChange={(e) => setManual({ ...manual, protein: e.target.value })}
+                style={{ padding: "13px 14px", borderRadius: 12, border: "1px solid #333333", background: "#0A0A0A", color: "#E8E8E8", fontSize: 15, outline: "none" }}
+              />
+              <input
+                type="number"
+                placeholder="Carbs (g)"
+                value={manual.carbs}
+                onChange={(e) => setManual({ ...manual, carbs: e.target.value })}
+                style={{ padding: "13px 14px", borderRadius: 12, border: "1px solid #333333", background: "#0A0A0A", color: "#E8E8E8", fontSize: 15, outline: "none" }}
+              />
+              <input
+                type="number"
+                placeholder="Fat (g)"
+                value={manual.fat}
+                onChange={(e) => setManual({ ...manual, fat: e.target.value })}
+                style={{ padding: "13px 14px", borderRadius: 12, border: "1px solid #333333", background: "#0A0A0A", color: "#E8E8E8", fontSize: 15, outline: "none" }}
+              />
+            </div>
+            <p style={{ fontSize: 12, color: "#666666", margin: 0, lineHeight: 1.4 }}>
+              Don't know the exact macros? A best guess is fine — calories and protein matter most.
+            </p>
+          </div>
+        )}
+
+        <button
+          onClick={handleSave}
+          disabled={!canSave}
+          style={{
+            width: "100%", padding: "14px 0", borderRadius: 12, border: "none", marginTop: 16, cursor: canSave ? "pointer" : "not-allowed",
+            background: canSave ? "#39FF14" : "#262626", color: canSave ? "#0A0A0A" : "#666666", fontWeight: 700, fontSize: 15,
+          }}
+        >
+          Add to today's log
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ---------------------------------------------------------
    Water tab
 --------------------------------------------------------- */
-function WaterTab({ state, setState }) {
+function RecoveryTab({ state, setState }) {
+  const [section, setSection] = useState("water");
   const dateKey = todayKey();
   const today = state.daily[dateKey] || emptyDay(state);
   const goal = state.profile.waterGoal || 10;
 
-  function adjust(delta) {
+  function adjustWater(delta) {
     const updated = { ...emptyDay(state), ...today, water: Math.max(0, today.water + delta) };
     setState({ ...state, daily: { ...state.daily, [dateKey]: updated } });
   }
 
   return (
-    <div style={{ padding: "1.25rem 1.25rem 6rem", display: "flex", flexDirection: "column", alignItems: "center" }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "#E8E8E8", marginBottom: "0.25rem", alignSelf: "flex-start" }}>Water tracker</h1>
-      <p style={{ fontSize: 13, color: "#8A8A8A", marginBottom: "2rem", alignSelf: "flex-start" }}>
-        Staying hydrated supports digestion when you're eating bigger volumes of food.
+    <div style={{ padding: "1.25rem 1.25rem 6rem" }}>
+      <h1 style={{ fontSize: 22, fontWeight: 700, color: "#E8E8E8", marginBottom: "1rem" }}>Recovery</h1>
+
+      <div style={{ display: "flex", gap: 6, marginBottom: "1.5rem" }}>
+        <button
+          onClick={() => setSection("water")}
+          style={{
+            flex: 1, padding: "10px 0", borderRadius: 12, fontSize: 13, fontWeight: 600, cursor: "pointer",
+            border: "1px solid #262626", background: section === "water" ? "#39FF14" : "#141414",
+            color: section === "water" ? "#0A0A0A" : "#E8E8E8",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+          }}
+        >
+          <Droplets size={15} /> Water
+        </button>
+        <button
+          onClick={() => setSection("sleep")}
+          style={{
+            flex: 1, padding: "10px 0", borderRadius: 12, fontSize: 13, fontWeight: 600, cursor: "pointer",
+            border: "1px solid #262626", background: section === "sleep" ? "#39FF14" : "#141414",
+            color: section === "sleep" ? "#0A0A0A" : "#E8E8E8",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+          }}
+        >
+          <Moon size={15} /> Sleep
+        </button>
+      </div>
+
+      {section === "water" ? (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <p style={{ fontSize: 13, color: "#8A8A8A", marginBottom: "1.5rem", alignSelf: "flex-start" }}>
+            Staying hydrated supports digestion when you're eating bigger volumes of food.
+          </p>
+
+          <div style={{ fontSize: 56, fontWeight: 700, color: "#39C5FF", marginBottom: 4 }}>{today.water}</div>
+          <p style={{ fontSize: 14, color: "#8A8A8A", marginBottom: "1.5rem" }}>of {goal} cups today</p>
+
+          <div style={{ display: "flex", gap: 8, marginBottom: "2rem", flexWrap: "wrap", justifyContent: "center", maxWidth: 320 }}>
+            {Array.from({ length: goal }).map((_, i) => (
+              <Droplet key={i} size={28} fill={i < today.water ? "#39C5FF" : "none"} color={i < today.water ? "#39C5FF" : "#333333"} strokeWidth={1.5} />
+            ))}
+          </div>
+
+          <div style={{ display: "flex", gap: 14 }}>
+            <button
+              onClick={() => adjustWater(-1)}
+              style={{ width: 56, height: 56, borderRadius: "50%", border: "1px solid #262626", background: "#141414", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+            >
+              <Minus size={22} color="#E8E8E8" />
+            </button>
+            <button
+              onClick={() => adjustWater(1)}
+              style={{ width: 56, height: 56, borderRadius: "50%", border: "none", background: "#39FF14", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+            >
+              <Plus size={22} color="#0A0A0A" />
+            </button>
+          </div>
+        </div>
+      ) : (
+        <SleepSection state={state} setState={setState} today={today} dateKey={dateKey} />
+      )}
+    </div>
+  );
+}
+
+function SleepSection({ state, setState, today, dateKey }) {
+  const sleep = today.sleep;
+  const [bedtime, setBedtime] = useState(sleep?.bedtime || "22:30");
+  const [wakeTime, setWakeTime] = useState(sleep?.wakeTime || "06:30");
+  const [editing, setEditing] = useState(!sleep);
+
+  const suggestedHours = 8; // standard adult recommendation, 7-9 hour range
+
+  function calcHours(bed, wake) {
+    const [bh, bm] = bed.split(":").map(Number);
+    const [wh, wm] = wake.split(":").map(Number);
+    let bedMinutes = bh * 60 + bm;
+    let wakeMinutes = wh * 60 + wm;
+    if (wakeMinutes <= bedMinutes) wakeMinutes += 24 * 60; // wrapped past midnight
+    return (wakeMinutes - bedMinutes) / 60;
+  }
+
+  function saveSleep() {
+    const hours = calcHours(bedtime, wakeTime);
+    const updatedDay = { ...emptyDay(state), ...today, sleep: { bedtime, wakeTime, hours } };
+    setState({ ...state, daily: { ...state.daily, [dateKey]: updatedDay } });
+    setEditing(false);
+  }
+
+  const displayHours = sleep ? sleep.hours : null;
+  const hoursLabel = displayHours !== null ? `${Math.floor(displayHours)}h ${Math.round((displayHours % 1) * 60)}m` : null;
+  const metGoal = displayHours !== null && displayHours >= 7;
+
+  return (
+    <div>
+      <p style={{ fontSize: 13, color: "#8A8A8A", marginBottom: "1.5rem" }}>
+        Aim for {suggestedHours} hours a night — recovery and muscle repair both happen mostly during sleep.
       </p>
 
-      <div style={{ fontSize: 56, fontWeight: 700, color: "#39C5FF", marginBottom: 4 }}>{today.water}</div>
-      <p style={{ fontSize: 14, color: "#8A8A8A", marginBottom: "1.5rem" }}>of {goal} cups today</p>
-
-      <div style={{ display: "flex", gap: 8, marginBottom: "2rem", flexWrap: "wrap", justifyContent: "center", maxWidth: 320 }}>
-        {Array.from({ length: goal }).map((_, i) => (
-          <Droplet key={i} size={28} fill={i < today.water ? "#39C5FF" : "none"} color={i < today.water ? "#39C5FF" : "#333333"} strokeWidth={1.5} />
-        ))}
-      </div>
-
-      <div style={{ display: "flex", gap: 14 }}>
-        <button
-          onClick={() => adjust(-1)}
-          style={{ width: 56, height: 56, borderRadius: "50%", border: "1px solid #262626", background: "#141414", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
-        >
-          <Minus size={22} color="#E8E8E8" />
-        </button>
-        <button
-          onClick={() => adjust(1)}
-          style={{ width: 56, height: 56, borderRadius: "50%", border: "none", background: "#39FF14", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
-        >
-          <Plus size={22} color="#0A0A0A" />
-        </button>
-      </div>
+      {!editing && sleep ? (
+        <div>
+          <div style={{ background: "#141414", border: "1px solid #262626", borderRadius: 18, padding: "1.5rem", marginBottom: 14, textAlign: "center" }}>
+            <p style={{ fontSize: 12, color: "#8A8A8A", marginBottom: 6, letterSpacing: "0.02em" }}>LAST NIGHT</p>
+            <p style={{ fontSize: 40, fontWeight: 700, color: metGoal ? "#39FF14" : "#FF4D4D", margin: "0 0 6px" }}>{hoursLabel}</p>
+            <p style={{ fontSize: 13, color: "#8A8A8A", margin: 0 }}>
+              {sleep.bedtime} → {sleep.wakeTime}
+            </p>
+          </div>
+          <button
+            onClick={() => setEditing(true)}
+            style={{ width: "100%", padding: "11px 0", borderRadius: 12, border: "1px solid #262626", background: "#0A0A0A", color: "#E8E8E8", fontWeight: 600, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+          >
+            <Edit3 size={14} /> Edit last night's sleep
+          </button>
+        </div>
+      ) : (
+        <div>
+          <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 12, color: "#8A8A8A", marginBottom: 6 }}>Went to sleep</p>
+              <input
+                type="time"
+                value={bedtime}
+                onChange={(e) => setBedtime(e.target.value)}
+                style={{ width: "100%", padding: "12px 10px", borderRadius: 12, border: "1px solid #333333", background: "#141414", color: "#E8E8E8", fontSize: 15, outline: "none", boxSizing: "border-box" }}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 12, color: "#8A8A8A", marginBottom: 6 }}>Woke up</p>
+              <input
+                type="time"
+                value={wakeTime}
+                onChange={(e) => setWakeTime(e.target.value)}
+                style={{ width: "100%", padding: "12px 10px", borderRadius: 12, border: "1px solid #333333", background: "#141414", color: "#E8E8E8", fontSize: 15, outline: "none", boxSizing: "border-box" }}
+              />
+            </div>
+          </div>
+          <div style={{ background: "#0F1F0A", border: "1px solid #2A4A1F", borderRadius: 14, padding: "0.85rem 1rem", marginBottom: 14, textAlign: "center" }}>
+            <p style={{ fontSize: 13, color: "#8A8A8A", margin: 0 }}>
+              That's <span style={{ color: "#39FF14", fontWeight: 700 }}>{calcHours(bedtime, wakeTime).toFixed(1)} hours</span> of sleep
+            </p>
+          </div>
+          <button
+            onClick={saveSleep}
+            style={{ width: "100%", padding: "13px 0", borderRadius: 12, border: "none", background: "#39FF14", color: "#0A0A0A", fontWeight: 700, fontSize: 15, cursor: "pointer" }}
+          >
+            Save
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -877,12 +1382,14 @@ function ProfileTab({ state, setState, targets }) {
     const newWeight = Number(weightInput);
     if (!newWeight || newWeight <= 0) return;
     const history = state.profile.weightHistory || [];
+    const today = todayKey();
+    const withoutToday = history.filter((h) => h.date !== today);
     setState({
       ...state,
       profile: {
         ...state.profile,
         weight: newWeight,
-        weightHistory: [...history, { date: todayKey(), weight: newWeight }],
+        weightHistory: [...withoutToday, { date: today, weight: newWeight }],
       },
     });
     setEditing(false);
@@ -935,6 +1442,11 @@ function ProfileTab({ state, setState, targets }) {
       </div>
 
       <div style={{ background: "#141414", border: "1px solid #262626", borderRadius: 18, padding: "1.25rem", marginBottom: "1rem" }}>
+        <p style={{ fontWeight: 600, fontSize: 15, color: "#E8E8E8", marginBottom: 4 }}>Weight over time</p>
+        <WeightChart history={state.profile.weightHistory || []} goalWeight={state.profile.goalWeight} />
+      </div>
+
+      <div style={{ background: "#141414", border: "1px solid #262626", borderRadius: 18, padding: "1.25rem", marginBottom: "1rem" }}>
         <p style={{ fontWeight: 600, fontSize: 15, color: "#E8E8E8", marginBottom: 10 }}>Daily targets</p>
         <TargetRow label="Calories" value={`${targets.targetCalories} kcal`} sub={`maintenance ~${targets.tdee} kcal`} />
         <TargetRow label="Protein" value={`${targets.proteinTarget} g`} sub="~1g per lb bodyweight" />
@@ -948,6 +1460,77 @@ function ProfileTab({ state, setState, targets }) {
           {totalGain > 0 ? "+" : ""}{totalGain} lb
         </p>
         <p style={{ fontSize: 12, color: "#8A8A8A" }}>since {state.profile.createdAt}</p>
+      </div>
+    </div>
+  );
+}
+
+function WeightChart({ history, goalWeight }) {
+  if (!history || history.length < 2) {
+    return (
+      <p style={{ fontSize: 13, color: "#8A8A8A", lineHeight: 1.5, margin: "8px 0 0" }}>
+        Log your weight a few more times to see your trend appear here.
+      </p>
+    );
+  }
+
+  const sorted = [...history].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const weights = sorted.map((h) => h.weight);
+  const allValues = goalWeight ? [...weights, goalWeight] : weights;
+  const minVal = Math.min(...allValues);
+  const maxVal = Math.max(...allValues);
+  const range = maxVal - minVal || 1;
+  const padding = range * 0.15;
+  const chartMin = minVal - padding;
+  const chartMax = maxVal + padding;
+  const chartRange = chartMax - chartMin || 1;
+
+  const width = 320;
+  const height = 140;
+  const padLeft = 8;
+  const padRight = 8;
+  const padTop = 12;
+  const padBottom = 24;
+  const plotWidth = width - padLeft - padRight;
+  const plotHeight = height - padTop - padBottom;
+
+  function xFor(i) {
+    if (sorted.length === 1) return padLeft + plotWidth / 2;
+    return padLeft + (i / (sorted.length - 1)) * plotWidth;
+  }
+  function yFor(value) {
+    return padTop + plotHeight - ((value - chartMin) / chartRange) * plotHeight;
+  }
+
+  const linePoints = sorted.map((h, i) => `${xFor(i)},${yFor(h.weight)}`).join(" ");
+  const goalY = goalWeight ? yFor(goalWeight) : null;
+
+  const firstLabel = new Date(sorted[0].date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  const lastLabel = new Date(sorted[sorted.length - 1].date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+
+  return (
+    <div>
+      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", height: "auto", display: "block" }}>
+        {goalY !== null && (
+          <>
+            <line x1={padLeft} y1={goalY} x2={width - padRight} y2={goalY} stroke="#39FF14" strokeWidth="1" strokeDasharray="4 4" opacity="0.5" />
+            <text x={width - padRight} y={goalY - 6} textAnchor="end" fontSize="10" fill="#39FF14" opacity="0.8">
+              Goal {goalWeight} lb
+            </text>
+          </>
+        )}
+        <polyline points={linePoints} fill="none" stroke="#39FF14" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+        {sorted.map((h, i) => (
+          <circle key={h.date} cx={xFor(i)} cy={yFor(h.weight)} r={i === sorted.length - 1 ? 4.5 : 3} fill="#39FF14" />
+        ))}
+        <text x={padLeft} y={height - 6} fontSize="10" fill="#8A8A8A">{firstLabel}</text>
+        <text x={width - padRight} y={height - 6} textAnchor="end" fontSize="10" fill="#8A8A8A">{lastLabel}</text>
+      </svg>
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
+        <p style={{ fontSize: 12, color: "#8A8A8A", margin: 0 }}>{sorted.length} entries logged</p>
+        <p style={{ fontSize: 12, color: "#E8E8E8", margin: 0, fontWeight: 600 }}>
+          Latest: {sorted[sorted.length - 1].weight} lb
+        </p>
       </div>
     </div>
   );
@@ -1008,7 +1591,7 @@ export default function Tracker({ onExit }) {
     ["home", "Home", <Home size={20} />],
     ["gym", "Gym", <Dumbbell size={20} />],
     ["meals", "Meals", <UtensilsCrossed size={20} />],
-    ["water", "Water", <Droplets size={20} />],
+    ["recovery", "Recovery", <Moon size={20} />],
     ["profile", "Profile", <User size={20} />],
   ];
 
@@ -1017,7 +1600,7 @@ export default function Tracker({ onExit }) {
       {tab === "home" && <Dashboard state={state} setState={setState} targets={targets} setTab={setTab} />}
       {tab === "gym" && <GymTab state={state} setState={setState} />}
       {tab === "meals" && <MealsTab state={state} setState={setState} targets={targets} />}
-      {tab === "water" && <WaterTab state={state} setState={setState} />}
+      {tab === "recovery" && <RecoveryTab state={state} setState={setState} />}
       {tab === "profile" && <ProfileTab state={state} setState={setState} targets={targets} />}
 
       {onExit && (
