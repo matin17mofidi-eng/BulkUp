@@ -331,14 +331,30 @@ function calcBMR(weightLbs, heightIn, age, sex) {
   return sex === "male" ? base + 5 : base - 161;
 }
 
-function calcSuggestedGoalWeight(heightIn) {
-  // Targets the middle of the healthy BMI range (18.5–25), landing around BMI 22.
-  // This gives a sensible, evidence-based default without requiring the user to know their own target.
+function calcSuggestedGoalWeight(heightIn, currentWeightLbs) {
+  // Goal: always suggest a sensible amount of further gain above the
+  // person's current weight, since this app is for people trying to GAIN —
+  // never suggest a target below where they already are, even if their
+  // current weight already sits at or above a "normal" BMI.
   const heightM = heightIn * 0.0254;
-  const targetBMI = 22;
-  const kg = targetBMI * heightM * heightM;
-  const lbs = kg / 0.453592;
-  return Math.round(lbs);
+  const healthyMidpointBMI = 22;
+  const healthyMidpointKg = healthyMidpointBMI * heightM * heightM;
+  const healthyMidpointLbs = healthyMidpointKg / 0.453592;
+
+  if (currentWeightLbs && currentWeightLbs >= healthyMidpointLbs) {
+    // Already at or above a normal healthy weight — suggest a further, modest gain
+    // (about 8% above current weight) rather than pulling them back down toward an average.
+    return Math.round(currentWeightLbs * 1.08);
+  }
+
+  if (currentWeightLbs) {
+    // Genuinely underweight — target the healthy BMI midpoint, which will
+    // naturally sit above their current weight in this branch.
+    return Math.round(healthyMidpointLbs);
+  }
+
+  // Fallback if current weight isn't available yet for some reason.
+  return Math.round(healthyMidpointLbs);
 }
 
 function calcTargets(profile) {
@@ -397,10 +413,10 @@ function Onboarding({ onComplete }) {
 
   const current = steps[step];
 
-  // The moment the user picks "calculated", fill in the suggested number based on height.
+  // The moment the user picks "calculated", fill in the suggested number based on height and current weight.
   useEffect(() => {
     if (current.key === "goalWeight" && form.goalWeightMode === "calculated" && form.height) {
-      const suggested = calcSuggestedGoalWeight(Number(form.height));
+      const suggested = calcSuggestedGoalWeight(Number(form.height), Number(form.weight));
       setForm((f) => ({ ...f, goalWeight: String(suggested) }));
     }
   }, [form.goalWeightMode]);
@@ -1282,6 +1298,49 @@ function RecoveryTab({ state, setState }) {
   );
 }
 
+function TimeSelect({ value, onChange, label }) {
+  // value is stored as 24-hour "HH:MM"; this renders/edits it as 12-hour with AM/PM dropdowns
+  // to avoid native <input type="time"> rendering quirks in dark mode across browsers.
+  const [h24, m] = value.split(":").map(Number);
+  const isPM = h24 >= 12;
+  const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+
+  function update(newH12, newM, newIsPM) {
+    let newH24 = newH12 % 12;
+    if (newIsPM) newH24 += 12;
+    const hh = String(newH24).padStart(2, "0");
+    const mm = String(newM).padStart(2, "0");
+    onChange(`${hh}:${mm}`);
+  }
+
+  const selectStyle = {
+    padding: "12px 8px", borderRadius: 12, border: "1px solid #333333", background: "#141414",
+    color: "#E8E8E8", fontSize: 15, outline: "none", flex: 1, cursor: "pointer",
+  };
+
+  return (
+    <div>
+      <p style={{ fontSize: 12, color: "#8A8A8A", marginBottom: 6 }}>{label}</p>
+      <div style={{ display: "flex", gap: 6 }}>
+        <select value={h12} onChange={(e) => update(Number(e.target.value), m, isPM)} style={selectStyle}>
+          {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
+            <option key={h} value={h}>{h}</option>
+          ))}
+        </select>
+        <select value={m} onChange={(e) => update(h12, Number(e.target.value), isPM)} style={selectStyle}>
+          {[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55].map((mm) => (
+            <option key={mm} value={mm}>{String(mm).padStart(2, "0")}</option>
+          ))}
+        </select>
+        <select value={isPM ? "PM" : "AM"} onChange={(e) => update(h12, m, e.target.value === "PM")} style={selectStyle}>
+          <option value="AM">AM</option>
+          <option value="PM">PM</option>
+        </select>
+      </div>
+    </div>
+  );
+}
+
 function SleepSection({ state, setState, today, dateKey }) {
   const sleep = today.sleep;
   const [bedtime, setBedtime] = useState(sleep?.bedtime || "22:30");
@@ -1335,24 +1394,8 @@ function SleepSection({ state, setState, today, dateKey }) {
       ) : (
         <div>
           <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 12, color: "#8A8A8A", marginBottom: 6 }}>Went to sleep</p>
-              <input
-                type="time"
-                value={bedtime}
-                onChange={(e) => setBedtime(e.target.value)}
-                style={{ width: "100%", padding: "12px 10px", borderRadius: 12, border: "1px solid #333333", background: "#141414", color: "#E8E8E8", fontSize: 15, outline: "none", boxSizing: "border-box" }}
-              />
-            </div>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 12, color: "#8A8A8A", marginBottom: 6 }}>Woke up</p>
-              <input
-                type="time"
-                value={wakeTime}
-                onChange={(e) => setWakeTime(e.target.value)}
-                style={{ width: "100%", padding: "12px 10px", borderRadius: 12, border: "1px solid #333333", background: "#141414", color: "#E8E8E8", fontSize: 15, outline: "none", boxSizing: "border-box" }}
-              />
-            </div>
+            <TimeSelect label="Went to sleep" value={bedtime} onChange={setBedtime} />
+            <TimeSelect label="Woke up" value={wakeTime} onChange={setWakeTime} />
           </div>
           <div style={{ background: "#0F1F0A", border: "1px solid #2A4A1F", borderRadius: 14, padding: "0.85rem 1rem", marginBottom: 14, textAlign: "center" }}>
             <p style={{ fontSize: 13, color: "#8A8A8A", margin: 0 }}>
@@ -1502,14 +1545,53 @@ function WeightChart({ history, goalWeight }) {
     return padTop + plotHeight - ((value - chartMin) / chartRange) * plotHeight;
   }
 
-  const linePoints = sorted.map((h, i) => `${xFor(i)},${yFor(h.weight)}`).join(" ");
   const goalY = goalWeight ? yFor(goalWeight) : null;
+  const startWeight = sorted[0].weight;
+
+  // Build colored line segments: each segment between two consecutive points is colored
+  // based on where the LATER point of that segment sits relative to the starting weight —
+  // blue once above the starting point (progress), red if it dips below it (regression).
+  const ABOVE_COLOR = "#39C5FF";
+  const BELOW_COLOR = "#FF4D4D";
+  const segments = [];
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const x1 = xFor(i), y1 = yFor(sorted[i].weight);
+    const x2 = xFor(i + 1), y2 = yFor(sorted[i + 1].weight);
+    const color = sorted[i + 1].weight >= startWeight ? ABOVE_COLOR : BELOW_COLOR;
+    segments.push({ x1, y1, x2, y2, color });
+  }
 
   const firstLabel = new Date(sorted[0].date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
   const lastLabel = new Date(sorted[sorted.length - 1].date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 
+  // Trend: compare the average of the most recent entries against the average of the
+  // entries before that, rather than just the last two points, since day-to-day weight
+  // naturally fluctuates from water, food timing, etc. A small "flat" band is treated as
+  // holding steady rather than calling tiny noise a trend in either direction.
+  const recentCount = Math.min(3, Math.floor(sorted.length / 2)) || 1;
+  const recentSlice = weights.slice(-recentCount);
+  const priorSlice = weights.slice(0, -recentCount);
+  const avg = (arr) => arr.reduce((s, v) => s + v, 0) / arr.length;
+  const recentAvg = avg(recentSlice);
+  const priorAvg = priorSlice.length > 0 ? avg(priorSlice) : recentAvg;
+  const delta = recentAvg - priorAvg;
+  const flatBand = 0.4; // lbs — changes smaller than this are treated as holding steady
+
+  let trendLabel, trendColor;
+  if (delta > flatBand) {
+    trendLabel = "Trending up — on track for your goal";
+    trendColor = "#39FF14";
+  } else if (delta < -flatBand) {
+    trendLabel = "Trending down — consider increasing your intake";
+    trendColor = "#FF4D4D";
+  } else {
+    trendLabel = "Holding steady — no clear trend yet";
+    trendColor = "#8A8A8A";
+  }
+
   return (
     <div>
+      <p style={{ fontSize: 13, fontWeight: 600, color: trendColor, marginBottom: 10 }}>{trendLabel}</p>
       <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", height: "auto", display: "block" }}>
         {goalY !== null && (
           <>
@@ -1519,9 +1601,17 @@ function WeightChart({ history, goalWeight }) {
             </text>
           </>
         )}
-        <polyline points={linePoints} fill="none" stroke="#39FF14" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+        {segments.map((seg, i) => (
+          <line key={i} x1={seg.x1} y1={seg.y1} x2={seg.x2} y2={seg.y2} stroke={seg.color} strokeWidth="2.5" strokeLinecap="round" />
+        ))}
         {sorted.map((h, i) => (
-          <circle key={h.date} cx={xFor(i)} cy={yFor(h.weight)} r={i === sorted.length - 1 ? 4.5 : 3} fill="#39FF14" />
+          <circle
+            key={h.date}
+            cx={xFor(i)}
+            cy={yFor(h.weight)}
+            r={i === sorted.length - 1 ? 4.5 : 3}
+            fill={h.weight >= startWeight ? ABOVE_COLOR : BELOW_COLOR}
+          />
         ))}
         <text x={padLeft} y={height - 6} fontSize="10" fill="#8A8A8A">{firstLabel}</text>
         <text x={width - padRight} y={height - 6} textAnchor="end" fontSize="10" fill="#8A8A8A">{lastLabel}</text>
