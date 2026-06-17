@@ -193,7 +193,8 @@ export default function Landing({ onStart }) {
 
       <footer style={{ textAlign: "center", padding: "2.5rem 1.5rem 2rem" }}>
         <img src="/assets/logo-full.png" alt="BulkUp — gain more, be more" style={{ width: 120, height: 120, borderRadius: 16, marginBottom: "1.5rem", objectFit: "cover" }} />
-        <div style={{ display: "flex", justifyContent: "center", gap: 14, marginBottom: "1.25rem" }}>
+        <p style={{ fontSize: 13, fontWeight: 700, color: "#39FF14", letterSpacing: "0.05em", marginBottom: 14 }}>CONTACT US FOR INQUIRIES</p>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, marginBottom: "1.5rem" }}>
           <a
             href="https://instagram.com/bulkupapp"
             target="_blank"
